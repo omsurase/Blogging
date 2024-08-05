@@ -1,10 +1,13 @@
 package cmd
 
+//./blog-cli auth register -u your_username -p your_password -e your_email@example.com
+//./blog-cli auth login -u yourusername -p yourpassword
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/spf13/cobra"
@@ -70,9 +73,10 @@ func register(cmd *cobra.Command, args []string) {
 		fmt.Println("Error preparing request:", err)
 		return
 	}
-
+	log.Printf("cli app")
 	// Send POST request to the auth microservice
-	resp, err := http.Post("http://localhost:8080/register", "application/json", bytes.NewBuffer(reqBody))
+	resp, err := http.Post("http://localhost:8080/auth/register", "application/json", bytes.NewBuffer(reqBody))
+
 	if err != nil {
 		fmt.Println("Error sending request:", err)
 		return
@@ -118,7 +122,7 @@ func login(cmd *cobra.Command, args []string) {
 	}
 
 	// Send POST request to the auth microservice
-	resp, err := http.Post("http://localhost:8080/login", "application/json", bytes.NewBuffer(reqBody))
+	resp, err := http.Post("http://localhost:8080/auth/login", "application/json", bytes.NewBuffer(reqBody))
 	if err != nil {
 		fmt.Println("Error sending request:", err)
 		return
@@ -148,7 +152,7 @@ func login(cmd *cobra.Command, args []string) {
 
 func logout(cmd *cobra.Command, args []string) {
 	// Prepare the request
-	req, err := http.NewRequest("POST", "http://auth-service:8080/logout", nil)
+	req, err := http.NewRequest("POST", "http://localhost:8080/auth/logout", nil)
 	if err != nil {
 		fmt.Println("Error preparing request:", err)
 		return
@@ -160,6 +164,7 @@ func logout(cmd *cobra.Command, args []string) {
 	// Send the request
 	client := &http.Client{}
 	resp, err := client.Do(req)
+
 	if err != nil {
 		fmt.Println("Error sending request:", err)
 		return
