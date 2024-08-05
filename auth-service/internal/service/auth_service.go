@@ -37,9 +37,9 @@ func (s *AuthService) Register(user *models.User) (string, error) {
 
 func (s *AuthService) Login(username, password string) (string, error) {
 	user, err := s.repo.GetByUsername(username)
-	log.Printf("request recieved.3")
+	//log.Printf("request recieved.3")
 	if err != nil {
-		log.Printf("request recieved.4")
+		//log.Printf("request recieved.4")
 		return "", errors.New("invalid credentials")
 	}
 

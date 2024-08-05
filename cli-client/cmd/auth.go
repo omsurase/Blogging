@@ -1,16 +1,18 @@
 package cmd
 
-//./blog-cli auth register -u your_username -p your_password -e your_email@example.com
-//./blog-cli auth login -u yourusername -p yourpassword
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 var (
@@ -45,24 +47,35 @@ var logoutCmd = &cobra.Command{
 }
 
 func init() {
-	registerCmd.Flags().StringVarP(&username, "username", "u", "", "Username for registration")
-	registerCmd.Flags().StringVarP(&password, "password", "p", "", "Password for registration")
-	registerCmd.Flags().StringVarP(&email, "email", "e", "", "Email for registration")
-	registerCmd.MarkFlagRequired("username")
-	registerCmd.MarkFlagRequired("password")
-	registerCmd.MarkFlagRequired("email")
-
-	loginCmd.Flags().StringVarP(&username, "username", "u", "", "Username for authentication")
-	loginCmd.Flags().StringVarP(&password, "password", "p", "", "Password for authentication")
-	loginCmd.MarkFlagRequired("username")
-	loginCmd.MarkFlagRequired("password")
 
 	authCmd.AddCommand(registerCmd)
 	authCmd.AddCommand(loginCmd)
 	authCmd.AddCommand(logoutCmd)
 }
 
+func getInput(prompt string) string {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print(prompt)
+	input, _ := reader.ReadString('\n')
+	return strings.TrimSpace(input)
+}
+
+func getPassword(prompt string) (string, error) {
+	fmt.Print(prompt)
+	password, err := term.ReadPassword(int(os.Stdin.Fd()))
+	fmt.Println() // Add a newline after the password input
+	return string(password), err
+}
+
 func register(cmd *cobra.Command, args []string) {
+	username = getInput("Enter username: ")
+	email = getInput("Enter email: ")
+	password, err := getPassword("Enter password: ")
+	if err != nil {
+		fmt.Println("Error reading password:", err)
+		return
+	}
+
 	// Prepare the request body
 	reqBody, err := json.Marshal(map[string]string{
 		"username": username,
@@ -111,6 +124,13 @@ func register(cmd *cobra.Command, args []string) {
 }
 
 func login(cmd *cobra.Command, args []string) {
+	username = getInput("Enter username: ")
+	password, err := getPassword("Enter password: ")
+	if err != nil {
+		fmt.Println("Error reading password:", err)
+		return
+	}
+
 	// Prepare the request body
 	reqBody, err := json.Marshal(map[string]string{
 		"username": username,
