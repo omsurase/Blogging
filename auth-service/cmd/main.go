@@ -22,19 +22,27 @@ func main() {
 	//log.Printf("%s", cfg)
 	// Initialize MongoDB client
 	client, err := mongo.NewClient(options.Client().ApplyURI(cfg.MongoURI))
+
 	if err != nil {
 		log.Fatalf("Failed to create MongoDB client: %v", err)
 	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+
 	defer cancel()
+
 	err = client.Connect(ctx)
+
 	if err != nil {
 		log.Fatalf("Failed to connect to MongoDB: %v", err)
 	}
+
 	err = client.Ping(ctx, nil)
+
 	if err != nil {
 		log.Fatalf("Failed to ping MongoDB: %v", err)
 	}
+
 	log.Println("Successfully connected to MongoDB")
 	defer client.Disconnect(ctx)
 
@@ -50,9 +58,9 @@ func main() {
 	authHandler := handlers.NewAuthHandler(authService)
 
 	// Define routes
-	r.HandleFunc("/register", authHandler.Register).Methods("POST")
-	r.HandleFunc("/login", authHandler.Login).Methods("POST")
-	r.HandleFunc("/validate", authHandler.ValidateToken).Methods("POST")
+	r.HandleFunc("/auth/register", authHandler.Register).Methods("POST")
+	r.HandleFunc("/auth/login", authHandler.Login).Methods("POST")
+	r.HandleFunc("/auth/validate", authHandler.ValidateToken).Methods("POST")
 
 	// Start server
 	addr := fmt.Sprintf(":%d", cfg.ServerPort)
