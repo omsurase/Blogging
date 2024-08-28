@@ -14,6 +14,8 @@ import (
 	"github.com/omsurase/Blogging/blog-service/internal/service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 )
 
 func main() {
@@ -42,6 +44,29 @@ func main() {
 	log.Println("Successfully connected to MongoDB")
 	defer client.Disconnect(ctx)
 
+	// Set up gRPC connection to auth service
+	log.Printf("Attempting to connect to auth service at %s", cfg.AuthServiceAddress)
+	authConn, err := grpc.Dial(cfg.AuthServiceAddress, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to connect to auth service: %v", err)
+	}
+	defer authConn.Close()
+
+	// Check the gRPC connection state
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	for {
+		state := authConn.GetState()
+		if state == connectivity.Ready {
+			log.Println("Successfully connected to auth service")
+			break
+		}
+		if !authConn.WaitForStateChange(ctx, state) {
+			log.Fatalf("gRPC connection state did not become ready: %v", authConn.GetState())
+		}
+	}
+
 	r := mux.NewRouter()
 
 	// Initialize repository
@@ -51,14 +76,14 @@ func main() {
 	blogService := service.NewBlogService(repo)
 
 	// Initialize handlers
-	blogHandler := handlers.NewBlogHandler(blogService)
+	blogHandler := handlers.NewBlogHandler(blogService, authConn)
 
 	// Define routes
-	r.HandleFunc("/posts", blogHandler.CreatePost).Methods("POST")
-	r.HandleFunc("/posts", blogHandler.GetAllPosts).Methods("GET")
-	r.HandleFunc("/posts/{id}", blogHandler.GetPost).Methods("GET")
-	r.HandleFunc("/posts/{id}", blogHandler.UpdatePost).Methods("PUT")
-	r.HandleFunc("/posts/{id}", blogHandler.DeletePost).Methods("DELETE")
+	r.HandleFunc("/posts", blogHandler.ValidateToken(blogHandler.CreatePost)).Methods("POST")
+	r.HandleFunc("/posts", blogHandler.ValidateToken(blogHandler.GetAllPosts)).Methods("GET")
+	r.HandleFunc("/posts/{id}", blogHandler.ValidateToken(blogHandler.GetPost)).Methods("GET")
+	r.HandleFunc("/posts/{id}", blogHandler.ValidateToken(blogHandler.UpdatePost)).Methods("PUT")
+	r.HandleFunc("/posts/{id}", blogHandler.ValidateToken(blogHandler.DeletePost)).Methods("DELETE")
 
 	// Start server
 	addr := fmt.Sprintf(":%d", cfg.ServerPort)

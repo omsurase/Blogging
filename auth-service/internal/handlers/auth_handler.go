@@ -1,11 +1,13 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/omsurase/Blogging/auth-service/internal/models"
+	pb "github.com/omsurase/Blogging/auth-service/internal/pb"
 	"github.com/omsurase/Blogging/auth-service/internal/service"
 )
 
@@ -15,6 +17,17 @@ type AuthHandler struct {
 
 func NewAuthHandler(authService *service.AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
+}
+
+// GRPCValidateToken handles token validation for gRPC requests
+func (h *AuthHandler) GRPCValidateToken(ctx context.Context, req *pb.ValidateTokenRequest) (*pb.ValidateTokenResponse, error) {
+	valid, err := h.authService.ValidateToken(req.Token)
+	if err != nil {
+		return nil, err
+	}
+	return &pb.ValidateTokenResponse{
+		Valid: valid,
+	}, nil
 }
 
 func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {

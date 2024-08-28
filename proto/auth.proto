@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option go_package = "ggithub.com/omsurase/Blogging/auth-service/proto";
+
+package auth;
+
+service AuthService {
+    rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+}
+
+message ValidateTokenRequest {
+    string token = 1;
+}
+
+message ValidateTokenResponse {
+    bool valid = 1;
+}

@@ -7,6 +7,7 @@ import (
 
 type Config struct {
 	ServerPort       int
+	GRPCPort         int
 	JWTSecret        string
 	TokenExpiryHours int
 	MongoURI         string
@@ -16,6 +17,7 @@ type Config struct {
 func LoadConfig() *Config {
 	return &Config{
 		ServerPort:       getEnvAsInt("SERVER_PORT", 8081),
+		GRPCPort:         getEnvAsInt("GRPC_PORT", 50051),
 		JWTSecret:        getEnv("JWT_SECRET", "your-secret-key"),
 		TokenExpiryHours: getEnvAsInt("TOKEN_EXPIRY_HOURS", 24),
 		MongoURI:         getEnv("MONGODB_URL", "mongodb+srv://openpasswordopen:open@cluster0.dwuo6sl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"),

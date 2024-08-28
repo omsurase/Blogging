@@ -4,17 +4,29 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/omsurase/Blogging/auth-service/internal/config"
 	"github.com/omsurase/Blogging/auth-service/internal/handlers"
+	pb "github.com/omsurase/Blogging/auth-service/internal/pb"
 	"github.com/omsurase/Blogging/auth-service/internal/repository"
 	"github.com/omsurase/Blogging/auth-service/internal/service"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc"
 )
+
+type grpcServer struct {
+	pb.UnimplementedAuthServiceServer
+	authHandler *handlers.AuthHandler
+}
+
+func (s *grpcServer) ValidateToken(ctx context.Context, req *pb.ValidateTokenRequest) (*pb.ValidateTokenResponse, error) {
+	return s.authHandler.GRPCValidateToken(ctx, req)
+}
 
 func main() {
 	// Load configuration
@@ -56,6 +68,19 @@ func main() {
 
 	// Initialize handlers
 	authHandler := handlers.NewAuthHandler(authService)
+
+	go func() {
+		lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))
+		if err != nil {
+			log.Fatalf("failed to listen: %v", err)
+		}
+		s := grpc.NewServer()
+		pb.RegisterAuthServiceServer(s, &grpcServer{authHandler: authHandler})
+		log.Printf("gRPC server listening on :%d", cfg.GRPCPort)
+		if err := s.Serve(lis); err != nil {
+			log.Fatalf("failed to serve: %v", err)
+		}
+	}()
 
 	// Define routes
 	r.HandleFunc("/auth/register", authHandler.Register).Methods("POST")
