@@ -15,7 +15,7 @@ type Config struct {
 	Token string `yaml:"token"`
 }
 
-func loadConfig() (Config, error) {
+func loadConfig2() (Config, error) {
 	var config Config
 	configFile, err := ioutil.ReadFile("user_config.yml")
 	if err != nil {
@@ -26,7 +26,7 @@ func loadConfig() (Config, error) {
 }
 
 func createAuthenticatedRequest(method, url string, body []byte) (*http.Request, error) {
-	config, err := loadConfig()
+	config, err := loadConfig2()
 	if err != nil {
 		return nil, fmt.Errorf("error loading config: %v", err)
 	}
