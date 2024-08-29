@@ -169,44 +169,13 @@ func login(cmd *cobra.Command, args []string) {
 }
 
 func logout(cmd *cobra.Command, args []string) {
-	config, err := loadConfig()
-	if err != nil {
-		fmt.Println("Error loading config:", err)
-		return
-	}
-
-	req, err := http.NewRequest("POST", "http://localhost:8080/auth/logout", nil)
-	if err != nil {
-		fmt.Println("Error preparing request:", err)
-		return
-	}
-
-	req.Header.Add("Authorization", "Bearer "+config.Token)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error sending request:", err)
-		return
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("Error reading response:", err)
-		return
-	}
-
-	var result map[string]interface{}
-	json.Unmarshal(body, &result)
-
-	if resp.StatusCode == http.StatusOK {
-		if err := os.Remove(configFile); err != nil {
-			fmt.Println("Error removing config file:", err)
+	if err := os.Remove(configFile); err != nil {
+		if os.IsNotExist(err) {
+			fmt.Println("No active session found.")
 		} else {
-			fmt.Println("Logout successful. User configuration removed.")
+			fmt.Println("Error removing config file:", err)
 		}
 	} else {
-		fmt.Println("Logout failed:", result["message"])
+		fmt.Println("Logout successful. User configuration removed.")
 	}
 }
