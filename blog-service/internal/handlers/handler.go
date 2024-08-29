@@ -10,6 +10,7 @@ import (
 	"github.com/omsurase/Blogging/blog-service/internal/models"
 	authpb "github.com/omsurase/Blogging/blog-service/internal/pb"
 	"github.com/omsurase/Blogging/blog-service/internal/service"
+	"go.mongodb.org/mongo-driver/mongo"
 	"google.golang.org/grpc"
 )
 
@@ -108,11 +109,16 @@ func (h *BlogHandler) GetPost(w http.ResponseWriter, r *http.Request) {
 	post, err := h.service.GetPost(id)
 	if err != nil {
 		log.Printf("GetPost: Error fetching post: %v\n", err)
-		http.Error(w, err.Error(), http.StatusNotFound)
+		if err == mongo.ErrNoDocuments {
+			http.Error(w, "Post not found", http.StatusNotFound)
+		} else {
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+		}
 		return
 	}
 
 	log.Printf("GetPost: Successfully fetched post with ID: %s\n", id)
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(post)
 }
 

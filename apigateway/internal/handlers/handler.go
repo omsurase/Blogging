@@ -28,10 +28,8 @@ func (h *GatewayHandler) AuthHandler(w http.ResponseWriter, r *http.Request) {
 
 func (h *GatewayHandler) PostsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("API Gateway: Received request for path: %s", r.URL.Path)
-	postsEndpoint := strings.TrimPrefix(r.URL.Path, "/posts")
-	targetURL := "http://localhost:8082/posts" + postsEndpoint
+	postsEndpoint := r.URL.Path
+	targetURL := "http://localhost:8082" + postsEndpoint
 	log.Printf("API Gateway: Forwarding request to %s", targetURL)
 	h.proxyService.ProxyRequest(targetURL, w, r)
 }
-
-// Add more handler methods as needed

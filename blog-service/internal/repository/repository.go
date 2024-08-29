@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/omsurase/Blogging/blog-service/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -46,13 +47,16 @@ func (r *MongoRepository) GetPost(id string) (*models.Post, error) {
 	collection := r.client.Database(r.dbName).Collection("posts")
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("invalid post ID: %v", err)
 	}
 
 	var post models.Post
 	err = collection.FindOne(context.Background(), bson.M{"_id": objectID}).Decode(&post)
 	if err != nil {
-		return nil, err
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("post not found: %s", id)
+		}
+		return nil, fmt.Errorf("error fetching post: %v", err)
 	}
 	return &post, nil
 }

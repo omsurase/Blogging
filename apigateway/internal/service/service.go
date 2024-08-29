@@ -28,6 +28,8 @@ func (s *ProxyService) ProxyRequest(target string, w http.ResponseWriter, r *htt
 	originalDirector := proxy.Director
 	proxy.Director = func(req *http.Request) {
 		originalDirector(req)
+		req.URL.Scheme = url.Scheme
+		req.URL.Host = url.Host
 		req.URL.Path = r.URL.Path
 		req.URL.RawQuery = r.URL.RawQuery
 		req.Header.Set("X-Forwarded-Host", req.Header.Get("Host"))

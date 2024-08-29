@@ -15,6 +15,12 @@ type Config struct {
 	Token string `yaml:"token"`
 }
 
+type Post struct {
+	Title   string `json:"title"`
+	Content string `json:"body"`
+	Author  string `json:"author"`
+}
+
 func loadConfig2() (Config, error) {
 	var config Config
 	configFile, err := ioutil.ReadFile("user_config.yml")
@@ -73,7 +79,12 @@ func createPost(cmd *cobra.Command, args []string) {
 }
 
 func readPost(cmd *cobra.Command, args []string) {
+	if len(args) == 0 {
+		fmt.Println("Error: Post ID is required")
+		return
+	}
 	id := args[0]
+
 	req, err := createAuthenticatedRequest("GET", fmt.Sprintf("http://localhost:8080/posts/%s", id), nil)
 	if err != nil {
 		fmt.Println("Error creating request:", err)
@@ -88,9 +99,18 @@ func readPost(cmd *cobra.Command, args []string) {
 	}
 	defer resp.Body.Close()
 
-	var post map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&post)
-	fmt.Printf("Title: %s\nContent: %s\nAuthor: %s\n", post["title"], post["content"], post["author"])
+	if resp.StatusCode != http.StatusOK {
+		fmt.Printf("Error: Server returned status code %d\n", resp.StatusCode)
+		return
+	}
+
+	var post Post
+	if err := json.NewDecoder(resp.Body).Decode(&post); err != nil {
+		fmt.Println("Error decoding response:", err)
+		return
+	}
+
+	fmt.Printf("Title: %s\nContent: %s\nAuthor: %s\n", post.Title, post.Content, post.Author)
 }
 
 func updatePost(cmd *cobra.Command, args []string) {
