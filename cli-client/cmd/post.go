@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
@@ -192,7 +195,7 @@ func listPosts(cmd *cobra.Command, args []string) {
 
 func getInput2(prompt string) string {
 	fmt.Print(prompt)
-	var input string
-	fmt.Scanln(&input)
-	return input
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	return strings.TrimSpace(input)
 }
