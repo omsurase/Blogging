@@ -20,7 +20,7 @@ type Config struct {
 
 type Post struct {
 	Title   string `json:"title"`
-	Content string `json:"body"`
+	Content string `json:"content"`
 	Author  string `json:"author"`
 }
 
@@ -106,7 +106,6 @@ func readPost(cmd *cobra.Command, args []string) {
 		fmt.Printf("Error: Server returned status code %d\n", resp.StatusCode)
 		return
 	}
-
 	var post Post
 	if err := json.NewDecoder(resp.Body).Decode(&post); err != nil {
 		fmt.Println("Error decoding response:", err)

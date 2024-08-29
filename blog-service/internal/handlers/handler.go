@@ -118,6 +118,8 @@ func (h *BlogHandler) GetPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	log.Printf("GetPost: Successfully fetched post with ID: %s\n", id)
+	log.Printf("Post details - Title: %s, Author: %s, Content: %s\n", post.Title, post.Author, post.Content)
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(post)
 }
