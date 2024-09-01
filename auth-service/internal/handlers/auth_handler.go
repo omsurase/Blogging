@@ -3,20 +3,27 @@ package handlers
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/omsurase/Blogging/auth-service/internal/models"
 	pb "github.com/omsurase/Blogging/auth-service/internal/pb"
+	userpb "github.com/omsurase/Blogging/auth-service/internal/pb/userpb"
 	"github.com/omsurase/Blogging/auth-service/internal/service"
+	"google.golang.org/grpc"
 )
 
 type AuthHandler struct {
 	authService *service.AuthService
+	userClient  userpb.UserServiceClient
 }
 
-func NewAuthHandler(authService *service.AuthService) *AuthHandler {
-	return &AuthHandler{authService: authService}
+func NewAuthHandler(authService *service.AuthService, userConn *grpc.ClientConn) *AuthHandler {
+	return &AuthHandler{
+		authService: authService,
+		userClient:  userpb.NewUserServiceClient(userConn),
+	}
 }
 
 // GRPCValidateToken handles token validation for gRPC requests
@@ -38,11 +45,21 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("request recieved.")
-
-	token, err := h.authService.Register(&user)
+	log.Printf("request received.")
+	fmt.Println((user))
+	userId, token, err := h.authService.Register(&user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	createUserReq := &userpb.CreateUserRequest{
+		UserId: userId,
+	}
+	_, err = h.userClient.CreateUser(context.Background(), createUserReq)
+	if err != nil {
+		log.Printf("Failed to create user in user microservice: %v", err)
+		http.Error(w, "Failed to complete user registration", http.StatusInternalServerError)
 		return
 	}
 

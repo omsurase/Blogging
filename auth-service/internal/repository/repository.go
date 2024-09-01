@@ -6,6 +6,7 @@ import (
 
 	"github.com/omsurase/Blogging/auth-service/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -24,8 +25,22 @@ func NewMongoRepository(client *mongo.Client, dbName string) *MongoRepository {
 }
 
 func (r *MongoRepository) Create(user *models.User) error {
-	_, err := r.collection.InsertOne(context.Background(), user)
-	return err
+	objectID := primitive.NewObjectID()
+
+	doc := bson.M{
+		"_id":      objectID,
+		"username": user.Username,
+		"password": user.Password,
+	}
+
+	_, err := r.collection.InsertOne(context.Background(), doc)
+	if err != nil {
+		return err
+	}
+
+	user.ID = objectID.Hex()
+
+	return nil
 }
 
 func (r *MongoRepository) GetByUsername(username string) (*models.User, error) {

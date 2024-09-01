@@ -7,6 +7,7 @@ import (
 
 type Config struct {
 	ServerPort int
+	GRPCPort   int
 	MongoURI   string
 	MongoDB    string
 }
@@ -14,6 +15,7 @@ type Config struct {
 func LoadConfig() *Config {
 	return &Config{
 		ServerPort: getEnvAsInt("SERVER_PORT", 8083),
+		GRPCPort:   getEnvAsInt("GRPC_PORT", 50052),
 		MongoURI:   getEnv("MONGODB_URL", "mongodb+srv://openpasswordopen:open@cluster0.dwuo6sl.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"),
 		MongoDB:    getEnv("MONGO_DB", "user_service"),
 	}

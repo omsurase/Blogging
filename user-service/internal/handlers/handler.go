@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -8,37 +9,47 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/omsurase/Blogging/user-service/internal/models"
+	pb "github.com/omsurase/Blogging/user-service/internal/pb"
 	"github.com/omsurase/Blogging/user-service/internal/service"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type UserHandler struct {
+	pb.UnimplementedUserServiceServer
 	userService *service.UserService
 }
 
 func NewUserHandler(userService *service.UserService) *UserHandler {
-	return &UserHandler{userService: userService}
+	return &UserHandler{
+		userService: userService,
+	}
 }
 
-func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
-	log.Println("CreateUser: Received request to create a new user")
-	var user models.User
-	err := json.NewDecoder(r.Body).Decode(&user)
+func (h *UserHandler) CreateUser(ctx context.Context, req *pb.CreateUserRequest) (*pb.CreateUserResponse, error) {
+	log.Printf("CreateUser: Received request to create user with ID: %s", req.UserId)
+	fmt.Println(req.UserId)
+	objectID, err := primitive.ObjectIDFromHex(req.UserId)
 	if err != nil {
-		log.Printf("CreateUser: Error decoding request body: %v", err)
-		http.Error(w, fmt.Sprintf("Invalid request body: %v", err), http.StatusBadRequest)
-		return
+		log.Printf("CreateUser: Error converting user ID to ObjectID. User ID: %s, Error: %v", req.UserId, err)
+		return nil, fmt.Errorf("invalid user ID: %v", err)
 	}
 
-	err = h.userService.CreateUser(&user)
-	if err != nil {
-		log.Printf("CreateUser: Error creating user: %v", err)
-		http.Error(w, fmt.Sprintf("Failed to create user: %v", err), http.StatusInternalServerError)
-		return
+	user := &models.User{
+		ID: objectID,
 	}
 
-	log.Printf("CreateUser: Successfully created user with ID: %s", user.ID)
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(user)
+	log.Printf("CreateUser: Attempting to create user with ObjectID: %s", objectID.Hex())
+	err = h.userService.CreateUser(user)
+	if err != nil {
+		log.Printf("CreateUser: Failed to create user. User ID: %s, Error: %v", objectID.Hex(), err)
+		return nil, fmt.Errorf("failed to create user: %v", err)
+	}
+
+	log.Printf("CreateUser: Successfully created user with ID: %s", objectID.Hex())
+	return &pb.CreateUserResponse{
+		Success: true,
+		Message: fmt.Sprintf("User created successfully with ID: %s", objectID.Hex()),
+	}, nil
 }
 
 func (h *UserHandler) GetUser(w http.ResponseWriter, r *http.Request) {

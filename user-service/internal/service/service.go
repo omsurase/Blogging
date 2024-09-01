@@ -20,7 +20,7 @@ func NewUserService(repo *repository.UserRepository) *UserService {
 }
 
 func (s *UserService) CreateUser(user *models.User) error {
-	log.Printf("CreateUser: Attempting to create user with username: %s", user.Username)
+	log.Printf("CreateUser: Attempting to create user with ID: %s", user.ID)
 	err := s.repo.Create(user)
 	if err != nil {
 		log.Printf("CreateUser: Failed to create user. Error: %v", err)

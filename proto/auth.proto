@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "ggithub.com/omsurase/Blogging/auth-service/proto";
+option go_package = "github.com/omsurase/Blogging/auth-service/internal/pb";
 
 package auth;
 

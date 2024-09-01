@@ -17,6 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/connectivity"
 )
 
 type grpcServer struct {
@@ -60,6 +61,26 @@ func main() {
 
 	r := mux.NewRouter()
 
+	userConn, err := grpc.Dial("localhost:50052", grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("Failed to connect to user service: %v", err)
+	}
+	defer userConn.Close()
+
+	ctx, cancel = context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	for {
+		state := userConn.GetState()
+		if state == connectivity.Ready {
+			log.Println("Successfully connected to user service")
+			break
+		}
+		if !userConn.WaitForStateChange(ctx, state) {
+			log.Fatalf("gRPC connection state did not become ready: %v", userConn.GetState())
+		}
+	}
+
 	// Initialize repository
 	repo := repository.NewMongoRepository(client, cfg.MongoDB)
 
@@ -67,7 +88,7 @@ func main() {
 	authService := service.NewAuthService(repo, cfg)
 
 	// Initialize handlers
-	authHandler := handlers.NewAuthHandler(authService)
+	authHandler := handlers.NewAuthHandler(authService, userConn)
 
 	go func() {
 		lis, err := net.Listen("tcp", fmt.Sprintf(":%d", cfg.GRPCPort))

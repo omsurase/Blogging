@@ -2,13 +2,14 @@ package service
 
 import (
 	"errors"
+	"log"
+	"time"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/omsurase/Blogging/auth-service/internal/config"
 	"github.com/omsurase/Blogging/auth-service/internal/models"
 	"github.com/omsurase/Blogging/auth-service/internal/repository"
 	"golang.org/x/crypto/bcrypt"
-	"log"
-	"time"
 )
 
 type AuthService struct {
@@ -20,19 +21,26 @@ func NewAuthService(repo repository.UserRepository, cfg *config.Config) *AuthSer
 	return &AuthService{repo: repo, config: cfg}
 }
 
-func (s *AuthService) Register(user *models.User) (string, error) {
+func (s *AuthService) Register(user *models.User) (string, string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	log.Printf("%s", hashedPassword)
 	user.Password = string(hashedPassword)
-	if err := s.repo.Create(user); err != nil {
-		return "", err
+
+	err = s.repo.Create(user)
+	if err != nil {
+		return "", "", err
 	}
 
 	// Generate token after successful registration
-	return s.generateToken(user.Username)
+	token, err := s.generateToken(user.Username)
+	if err != nil {
+		return "", "", err
+	}
+
+	return user.ID, token, nil
 }
 
 func (s *AuthService) Login(username, password string) (string, error) {
