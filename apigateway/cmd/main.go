@@ -27,6 +27,7 @@ func main() {
 	// Define routes
 	r.PathPrefix("/auth").HandlerFunc(gatewayHandler.AuthHandler)
 	r.PathPrefix("/posts").HandlerFunc(gatewayHandler.PostsHandler)
+	r.PathPrefix("/users").HandlerFunc(gatewayHandler.UsersHandler)
 
 	// Start server
 	addr := fmt.Sprintf(":%d", cfg.ServerPort)

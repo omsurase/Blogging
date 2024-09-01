@@ -26,9 +26,10 @@ func runCLI(cmd *cobra.Command, args []string) {
 		fmt.Println("\nMain Menu:")
 		fmt.Println("1. Auth")
 		fmt.Println("2. Post")
-		fmt.Println("3. Exit")
+		fmt.Println("3. User")
+		fmt.Println("4. Exit")
 
-		choice := getInput("Enter your choice (1-3): ")
+		choice := getInput("Enter your choice (1-4): ")
 
 		switch choice {
 		case "1":
@@ -36,6 +37,8 @@ func runCLI(cmd *cobra.Command, args []string) {
 		case "2":
 			runPostMenu()
 		case "3":
+			runUserMenu()
+		case "4":
 			fmt.Println("Goodbye!")
 			os.Exit(0)
 		default:
@@ -95,6 +98,43 @@ func runPostMenu() {
 			deletePost(nil, []string{id})
 		case "5":
 			listPosts(nil, nil)
+		case "6":
+			return
+		default:
+			fmt.Println("Invalid choice. Please try again.")
+		}
+	}
+
+}
+
+func runUserMenu() {
+	for {
+		fmt.Println("\nUser Menu:")
+		fmt.Println("1. Get user")
+		fmt.Println("2. Follow user")
+		fmt.Println("3. Unfollow user")
+		fmt.Println("4. Get following")
+		fmt.Println("5. Get followers")
+		fmt.Println("6. Back to main menu")
+		choice := getInput("Enter your choice (1-7): ")
+		switch choice {
+		case "1":
+			id := getInput("Enter user ID: ")
+			getUser(nil, []string{id})
+		case "2":
+			followerID := getInput("Enter follower ID: ")
+			followeeID := getInput("Enter followee ID: ")
+			followUser(nil, []string{followerID, followeeID})
+		case "3":
+			followerID := getInput("Enter follower ID: ")
+			followeeID := getInput("Enter followee ID: ")
+			unfollowUser(nil, []string{followerID, followeeID})
+		case "4":
+			id := getInput("Enter user ID: ")
+			getFollowing(nil, []string{id})
+		case "5":
+			id := getInput("Enter user ID: ")
+			getFollowers(nil, []string{id})
 		case "6":
 			return
 		default:

@@ -33,3 +33,11 @@ func (h *GatewayHandler) PostsHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("API Gateway: Forwarding request to %s", targetURL)
 	h.proxyService.ProxyRequest(targetURL, w, r)
 }
+
+func (h *GatewayHandler) UsersHandler(w http.ResponseWriter, r *http.Request) {
+	log.Printf("API Gateway: Received request for path: %s", r.URL.Path)
+	usersEndpoint := strings.TrimPrefix(r.URL.Path, "/users")
+	targetURL := "http://localhost:8083/users" + usersEndpoint
+	log.Printf("API Gateway: Forwarding request to %s", targetURL)
+	h.proxyService.ProxyRequest(targetURL, w, r)
+}
