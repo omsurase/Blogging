@@ -129,7 +129,6 @@ func (h *UserHandler) GetFollowers(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, fmt.Sprintf("Failed to get followers list: %v", err), http.StatusInternalServerError)
 		return
 	}
-
 	log.Printf("GetFollowers: Successfully retrieved followers list for user %s. Count: %d", userID, len(followers))
 	json.NewEncoder(w).Encode(followers)
 }

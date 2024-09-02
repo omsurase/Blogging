@@ -149,31 +149,21 @@ func (r *UserRepository) GetFollowing(userID primitive.ObjectID) ([]*models.User
 	return following, nil
 }
 
-func (r *UserRepository) GetFollowers(userID primitive.ObjectID) ([]*models.User, error) {
+func (r *UserRepository) GetFollowers(userID primitive.ObjectID) ([]primitive.ObjectID, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	log.Printf("Attempting to fetch followers of user %s", userID.Hex())
 
-	user, err := r.GetByID(userID)
+	var user struct {
+		Followers []primitive.ObjectID `bson:"followers"`
+	}
+	err := r.collection.FindOne(ctx, bson.M{"_id": userID}).Decode(&user)
 	if err != nil {
+		log.Printf("Error fetching user %s: %v", userID.Hex(), err)
 		return nil, fmt.Errorf("failed to fetch user: %w", err)
 	}
 
-	var followers []*models.User
-	cursor, err := r.collection.Find(ctx, bson.M{"_id": bson.M{"$in": user.Followers}})
-	if err != nil {
-		log.Printf("Error fetching followers for user %s: %v", userID.Hex(), err)
-		return nil, fmt.Errorf("failed to fetch followers: %w", err)
-	}
-	defer cursor.Close(ctx)
-
-	err = cursor.All(ctx, &followers)
-	if err != nil {
-		log.Printf("Error decoding followers for user %s: %v", userID.Hex(), err)
-		return nil, fmt.Errorf("failed to decode followers: %w", err)
-	}
-
-	log.Printf("Successfully fetched %d followers of user %s", len(followers), userID.Hex())
-	return followers, nil
+	log.Printf("Successfully fetched %d followers of user %s", len(user.Followers), userID.Hex())
+	return user.Followers, nil
 }

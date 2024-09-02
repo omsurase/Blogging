@@ -119,7 +119,7 @@ func (s *UserService) GetFollowing(userID string) ([]primitive.ObjectID, error) 
 	return followingIDs, nil
 }
 
-func (s *UserService) GetFollowers(userID string) ([]*models.User, error) {
+func (s *UserService) GetFollowers(userID string) ([]primitive.ObjectID, error) {
 	log.Printf("GetFollowers: Fetching followers of user %s", userID)
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
