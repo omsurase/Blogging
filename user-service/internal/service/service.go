@@ -21,6 +21,10 @@ func NewUserService(repo *repository.UserRepository) *UserService {
 
 func (s *UserService) CreateUser(user *models.User) error {
 	log.Printf("CreateUser: Attempting to create user with ID: %s", user.ID)
+
+	user.Following = []primitive.ObjectID{}
+	user.Followers = []primitive.ObjectID{}
+
 	err := s.repo.Create(user)
 	if err != nil {
 		log.Printf("CreateUser: Failed to create user. Error: %v", err)

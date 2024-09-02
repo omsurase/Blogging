@@ -116,25 +116,23 @@ func runUserMenu() {
 		fmt.Println("4. Get following")
 		fmt.Println("5. Get followers")
 		fmt.Println("6. Back to main menu")
-		choice := getInput("Enter your choice (1-7): ")
+
+		choice := getInput("Enter your choice (1-6): ")
+
 		switch choice {
 		case "1":
 			id := getInput("Enter user ID: ")
 			getUser(nil, []string{id})
 		case "2":
-			followerID := getInput("Enter follower ID: ")
 			followeeID := getInput("Enter followee ID: ")
-			followUser(nil, []string{followerID, followeeID})
+			followUser(nil, []string{followeeID})
 		case "3":
-			followerID := getInput("Enter follower ID: ")
 			followeeID := getInput("Enter followee ID: ")
-			unfollowUser(nil, []string{followerID, followeeID})
+			unfollowUser(nil, []string{followeeID})
 		case "4":
-			id := getInput("Enter user ID: ")
-			getFollowing(nil, []string{id})
+			getFollowing(nil, nil)
 		case "5":
-			id := getInput("Enter user ID: ")
-			getFollowers(nil, []string{id})
+			getFollowers(nil, nil)
 		case "6":
 			return
 		default:
