@@ -18,6 +18,7 @@ import (
 type UserConfig struct {
 	Username string `yaml:"username"`
 	Token    string `yaml:"token"`
+	UserID   string `yaml:"user_id"` // Added field for user ID
 }
 
 var (
@@ -25,6 +26,7 @@ var (
 	password string
 	email    string
 	token    string
+	userID   string
 )
 
 const configFile = "user_config.yml"
@@ -94,19 +96,27 @@ func register(cmd *cobra.Command, args []string) {
 	}
 
 	var result map[string]interface{}
-	json.Unmarshal(body, &result)
+	if err := json.Unmarshal(body, &result); err != nil {
+		fmt.Println("Error parsing response:", err)
+		return
+	}
 
 	if resp.StatusCode == http.StatusCreated {
 		fmt.Println("Registration successful:", result["message"])
 		if token, ok := result["token"].(string); ok {
-			config := UserConfig{
-				Username: username,
-				Token:    token,
-			}
-			if err := saveConfig(config); err != nil {
-				fmt.Println("Error saving config:", err)
+			if userID, ok := result["user_id"].(string); ok {
+				config := UserConfig{
+					Username: username,
+					Token:    token,
+					UserID:   userID,
+				}
+				if err := saveConfig(config); err != nil {
+					fmt.Println("Error saving config:", err)
+				} else {
+					fmt.Println("User configuration saved successfully.")
+				}
 			} else {
-				fmt.Println("User configuration saved successfully.")
+				fmt.Println("No user ID was returned with the registration")
 			}
 		} else {
 			fmt.Println("No token was returned with the registration")
@@ -147,18 +157,26 @@ func login(cmd *cobra.Command, args []string) {
 	}
 
 	var result map[string]interface{}
-	json.Unmarshal(body, &result)
+	if err := json.Unmarshal(body, &result); err != nil {
+		fmt.Println("Error parsing response:", err)
+		return
+	}
 
 	if resp.StatusCode == http.StatusOK {
 		if token, ok := result["token"].(string); ok {
-			config := UserConfig{
-				Username: username,
-				Token:    token,
-			}
-			if err := saveConfig(config); err != nil {
-				fmt.Println("Error saving config:", err)
+			if userID, ok := result["user_id"].(string); ok {
+				config := UserConfig{
+					Username: username,
+					Token:    token,
+					UserID:   userID,
+				}
+				if err := saveConfig(config); err != nil {
+					fmt.Println("Error saving config:", err)
+				} else {
+					fmt.Println("Login successful. User configuration saved.")
+				}
 			} else {
-				fmt.Println("Login successful. User configuration saved.")
+				fmt.Println("No user ID was returned with the login")
 			}
 		} else {
 			fmt.Println("No token was returned with the login")

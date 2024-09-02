@@ -43,19 +43,22 @@ func (s *AuthService) Register(user *models.User) (string, string, error) {
 	return user.ID, token, nil
 }
 
-func (s *AuthService) Login(username, password string) (string, error) {
+func (s *AuthService) Login(username, password string) (string, string, error) {
 	user, err := s.repo.GetByUsername(username)
-	//log.Printf("request recieved.3")
 	if err != nil {
-		//log.Printf("request recieved.4")
-		return "", errors.New("invalid credentials")
+		return "", "", errors.New("invalid credentials")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", errors.New("invalid credentials")
+		return "", "", errors.New("invalid credentials")
 	}
 
-	return s.generateToken(username)
+	token, err := s.generateToken(username)
+	if err != nil {
+		return "", "", err
+	}
+
+	return user.ID, token, nil
 }
 
 func (s *AuthService) ValidateToken(tokenString string) (bool, error) {

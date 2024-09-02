@@ -45,16 +45,16 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("request received.")
-	fmt.Println((user))
-	userId, token, err := h.authService.Register(&user)
+	log.Printf("Request received.")
+	fmt.Println(user)
+	userID, token, err := h.authService.Register(&user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	createUserReq := &userpb.CreateUserRequest{
-		UserId: userId,
+		UserId: userID,
 	}
 	_, err = h.userClient.CreateUser(context.Background(), createUserReq)
 	if err != nil {
@@ -64,7 +64,11 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "User registered successfully", "token": token})
+	json.NewEncoder(w).Encode(map[string]string{
+		"message": "User registered successfully",
+		"token":   token,
+		"user_id": userID, // Include user ID in response
+	})
 }
 
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -74,17 +78,19 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Printf("request recieved.")
+	log.Printf("Request received.")
 
-	token, err := h.authService.Login(credentials.Username, credentials.Password)
-
+	token, userID, err := h.authService.Login(credentials.Username, credentials.Password)
 	if err != nil {
-		log.Printf("request recieved.2")
+		log.Printf("Login failed: %v", err)
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
-	json.NewEncoder(w).Encode(map[string]string{"token": token})
+	json.NewEncoder(w).Encode(map[string]string{
+		"token":   token,
+		"user_id": userID, // Include user ID in response
+	})
 }
 
 func (h *AuthHandler) ValidateToken(w http.ResponseWriter, r *http.Request) {
