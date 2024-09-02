@@ -4,52 +4,27 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v2"
 )
 
-// Config2 struct to hold the YAML config
-type Config2 struct {
+type Config3 struct {
 	UserID string `yaml:"user_id"`
 }
 
-var config Config2
-
-func init() {
-	// Load the configuration when the package is initialized
-	loadConfig3()
-}
-
-func loadConfig3() {
-	file, err := os.Open("user_config.yml")
+func loadConfig3() (Config3, error) {
+	var config Config3
+	configFile, err := ioutil.ReadFile("user_config.yml")
 	if err != nil {
-		fmt.Println("Error opening config file:", err)
-		return
+		return config, err
 	}
-	defer file.Close()
-
-	// Read the file content for debugging
-	content, err := ioutil.ReadAll(file)
-	if err != nil {
-		fmt.Println("Error reading config file:", err)
-		return
-	}
-	fmt.Println("Config file content:", string(content))
-
-	// Decode the YAML content
-	err = yaml.Unmarshal(content, &config)
-	if err != nil {
-		fmt.Println("Error decoding config file:", err)
-		return
-	}
-
-	// Print the loaded config for debugging
-	fmt.Printf("Loaded Config: %+v\n", config)
+	err = yaml.Unmarshal(configFile, &config)
+	return config, err
 }
 
 func getUser(cmd *cobra.Command, args []string) {
+	config, err := loadConfig3()
 	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/users/%s", config.UserID))
 	if err != nil {
 		fmt.Println("Error getting user:", err)
@@ -61,6 +36,7 @@ func getUser(cmd *cobra.Command, args []string) {
 }
 
 func followUser(cmd *cobra.Command, args []string) {
+	config, err := loadConfig3()
 	if len(args) < 1 {
 		fmt.Println("Please provide the followee ID")
 		return
@@ -83,6 +59,7 @@ func followUser(cmd *cobra.Command, args []string) {
 }
 
 func unfollowUser(cmd *cobra.Command, args []string) {
+	config, err := loadConfig3()
 	if len(args) < 1 {
 		fmt.Println("Please provide the followee ID")
 		return
@@ -104,6 +81,7 @@ func unfollowUser(cmd *cobra.Command, args []string) {
 }
 
 func getFollowing(cmd *cobra.Command, args []string) {
+	config, err := loadConfig3()
 	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/users/%s/following", config.UserID))
 	if err != nil {
 		fmt.Println("Error getting following list:", err)
@@ -115,6 +93,7 @@ func getFollowing(cmd *cobra.Command, args []string) {
 }
 
 func getFollowers(cmd *cobra.Command, args []string) {
+	config, err := loadConfig3()
 	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/users/%s/followers", config.UserID))
 	if err != nil {
 		fmt.Println("Error getting followers list:", err)
