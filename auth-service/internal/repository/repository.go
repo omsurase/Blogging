@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/omsurase/Blogging/auth-service/internal/models"
 	"go.mongodb.org/mongo-driver/bson"
@@ -52,5 +53,7 @@ func (r *MongoRepository) GetByUsername(username string) (*models.User, error) {
 		}
 		return nil, err
 	}
+	fmt.Println(user.ID)
+
 	return &user, nil
 }

@@ -96,7 +96,7 @@ func (s *UserService) UnfollowUser(followerID, followeeID string) error {
 	return nil
 }
 
-func (s *UserService) GetFollowing(userID string) ([]*models.User, error) {
+func (s *UserService) GetFollowing(userID string) ([]primitive.ObjectID, error) {
 	log.Printf("GetFollowing: Fetching users followed by user %s", userID)
 	objectID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
@@ -109,7 +109,14 @@ func (s *UserService) GetFollowing(userID string) ([]*models.User, error) {
 		return nil, fmt.Errorf("failed to fetch following users: %w", err)
 	}
 	log.Printf("GetFollowing: Successfully fetched %d users followed by user %s", len(following), userID)
-	return following, nil
+
+	// Extract the IDs from the following slice
+	var followingIDs []primitive.ObjectID
+	for _, user := range following {
+		followingIDs = append(followingIDs, user.ID)
+	}
+
+	return followingIDs, nil
 }
 
 func (s *UserService) GetFollowers(userID string) ([]*models.User, error) {

@@ -50,18 +50,12 @@ func loadConfig3() {
 }
 
 func getUser(cmd *cobra.Command, args []string) {
-	if len(args) < 1 {
-		fmt.Println("Please provide a user ID")
-		return
-	}
-
-	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/users/%s", args[0]))
+	resp, err := http.Get(fmt.Sprintf("http://localhost:8080/users/%s", config.UserID))
 	if err != nil {
 		fmt.Println("Error getting user:", err)
 		return
 	}
 	defer resp.Body.Close()
-
 	body, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println("User details:", string(body))
 }
@@ -116,7 +110,6 @@ func getFollowing(cmd *cobra.Command, args []string) {
 		return
 	}
 	defer resp.Body.Close()
-
 	body, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println("Following list:", string(body))
 }
@@ -128,7 +121,6 @@ func getFollowers(cmd *cobra.Command, args []string) {
 		return
 	}
 	defer resp.Body.Close()
-
 	body, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println("Followers list:", string(body))
 }

@@ -121,8 +121,7 @@ func runUserMenu() {
 
 		switch choice {
 		case "1":
-			id := getInput("Enter user ID: ")
-			getUser(nil, []string{id})
+			getUser(nil, nil) // Removed ID input, uses config.UserID
 		case "2":
 			followeeID := getInput("Enter followee ID: ")
 			followUser(nil, []string{followeeID})
@@ -130,9 +129,9 @@ func runUserMenu() {
 			followeeID := getInput("Enter followee ID: ")
 			unfollowUser(nil, []string{followeeID})
 		case "4":
-			getFollowing(nil, nil)
+			getFollowing(nil, nil) // Removed args, uses config.UserID
 		case "5":
-			getFollowers(nil, nil)
+			getFollowers(nil, nil) // Removed args, uses config.UserID
 		case "6":
 			return
 		default:

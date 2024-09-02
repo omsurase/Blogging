@@ -52,13 +52,13 @@ func (s *AuthService) Login(username, password string) (string, string, error) {
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return "", "", errors.New("invalid credentials")
 	}
-
+	log.Println(user.ID)
 	token, err := s.generateToken(username)
 	if err != nil {
 		return "", "", err
 	}
 
-	return user.ID, token, nil
+	return token, user.ID, nil
 }
 
 func (s *AuthService) ValidateToken(tokenString string) (bool, error) {
